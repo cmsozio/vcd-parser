@@ -6,12 +6,6 @@ use std::fs::File;
 use std::env;
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-enum Token {
-    StringLiteral(String),
-    Number(u64),
-}
-
 #[derive (Debug)]
 struct ValueChange {
     time: u64,
@@ -66,11 +60,20 @@ fn separate_line(cur: &mut String) -> Vec<String> {
 
 fn handle_var(vec: Vec<String>) -> Var{
     let change: Vec<ValueChange> = Vec::new(); 
+
+    let mut re: String;
+    if vec[5].contains("$end") {
+        re = vec[4].clone();
+    } else {
+        re = vec[4].clone();
+        re.push_str(&vec[5]);
+    }
+
     let var = Var {
         var_type: vec[1].clone(),
         size: vec[2].parse().unwrap(),
         identifier: vec[3].clone(),
-        reference: vec[4].clone(),
+        reference: re,
         changes: change,
     };
 
@@ -221,6 +224,7 @@ fn main() {
     // Determine which signals/registers do not change throughout the simulation
     let mut var_iter = vars_values.iter();
 
+    println!("\nVariables that do not change:");
     while var_iter.len() > 0 {
         let current = match var_iter.next() {
             Some(var) => var,
@@ -229,7 +233,8 @@ fn main() {
 
         if current.changes.len() <= 1 {
             if current.var_type != "parameter".to_string() {
-                println!("{:?}", current);
+                println!("Variable: {} Identifier: {} Change: {:?}", current.reference, current.identifier, current.changes);
+                //println!("{:?}", current);
             }
         }
     }
@@ -238,7 +243,7 @@ fn main() {
 
     // Debugging
     //println!("{:?}", vars_mapping);
-    //println!("{:?}", vars_values);
+    println!("{:?}", vars_values);
 
     // Return
     return;
